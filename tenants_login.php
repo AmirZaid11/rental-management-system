@@ -14,6 +14,7 @@ ob_end_flush();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
+    $redirect = $_POST['redirect']; // Capture the redirect page
 
     // Fetch user data
     $query = "SELECT * FROM clients WHERE username='$username' AND password='$password'";
@@ -21,18 +22,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($result->num_rows == 1) {
         $row = $result->fetch_assoc();
-
         $_SESSION['login_id'] = $row['id'];
         $_SESSION['tenant_name'] = $row['name'];
 
-        // Redirect to tenant dashboard
-        header("Location: tenant_dashboard.php");
+        // Redirect to rentals if the user was trying to access it
+        if (!empty($redirect)) {
+            header("Location: " . $redirect);
+        } else {
+            header("Location: tenant_dashboard.php"); // Default redirect
+        }
         exit();
     } else {
         echo "<script>alert('Invalid username or password');</script>";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -80,22 +85,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h4 class="text-center"><b><?php echo $_SESSION['system']['name'] ?></b></h4>
         <hr>
         <form id="login-form" method="POST">
-            <div class="form-group">
-                <label for="username" class="control-label">Username</label>
-                <input type="text" id="username" name="username" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="password" class="control-label">Password</label>
-                <input type="password" id="password" name="password" class="form-control" required>
-            </div>
-            <div class="form-group text-center">
-                <button type="submit" class="btn btn-primary btn-block">Login</button>
-                <a href="homepage.php" class="btn btn-secondary btn-block">Back</a>
-            </div>
-            <div class="text-center">
-                <p>Don't have an account? <a href="tenants_regform.php">Register here</a></p>
-            </div>
-        </form>
+    <input type="hidden" name="redirect" value="<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : ''; ?>">
+    <div class="form-group">
+        <label for="username" class="control-label">Username</label>
+        <input type="text" id="username" name="username" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="password" class="control-label">Password</label>
+        <input type="password" id="password" name="password" class="form-control" required>
+    </div>
+    <div class="form-group text-center">
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+        <a href="homepage.php" class="btn btn-secondary btn-block">Back</a>
+    </div>
+    <div class="text-center">
+        <p>Don't have an account? <a href="tenants_regform.php">Register here</a></p>
+    </div>
+</form>
+
     </div>
 </main>
 

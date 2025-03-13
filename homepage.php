@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- Include necessary files and start session -->
 <?php
 session_start();
 include('./db_connect.php');
@@ -10,20 +9,20 @@ include('./db_connect.php');
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Agencies Rentals Management System</title>
 
-    <title><?php echo isset($_SESSION['system']['name']) ? $_SESSION['system']['name'] : '' ?></title>
-
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    
+    <!-- Custom Styles -->
     <style>
-        /* Add custom styles here */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
         }
 
         .hero {
-            background-image: url('assets/images/banner1.jpg');
-            background-size: cover;
-            background-position: center;
+            background: url('assets/images/banner1.jpg') no-repeat center center/cover;
             color: #fff;
             padding: 250px 0;
             text-align: center;
@@ -32,7 +31,7 @@ include('./db_connect.php');
 
         .hero h1 {
             font-size: 3rem;
-            margin-bottom: 30px;
+            font-weight: bold;
         }
 
         .hero p {
@@ -40,251 +39,298 @@ include('./db_connect.php');
             margin-bottom: 30px;
         }
 
-        .featured-rentals .card {
-            margin-bottom: 20px;
+        /* Rental Calculator Button */
+        .calculator-btn {
+            display: block;
+            margin: 30px auto;
+            width: 200px;
+            font-size: 18px;
         }
 
-        .services {
-            background-color: #f8f9fa;
-            padding: 50px 0;
+        /* Rental Calculator Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
         }
 
-        .services h2 {
-            margin-bottom: 30px;
-        }
-
-        .services .service-item {
-            margin-bottom: 20px;
-        }
-
-        .testimonials {
-            padding: 50px 0;
+        .modal-content {
+            background: #222;
+            color: #fff;
+            width: 350px;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
             text-align: center;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
 
-        .testimonials h2 {
-            margin-bottom: 30px;
+        .modal-content select,
+        .modal-content input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background: #333;
+            color: #fff;
+            font-size: 16px;
         }
 
-        .about-us {
-            padding: 50px 0;
-            background-color: #f8f9fa;
+        .modal-content input::placeholder {
+            color: #bbb;
         }
 
-        .about-us h2 {
-            margin-bottom: 30px;
+        .modal-content .btn {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
         }
 
-        .contact {
-            padding: 50px 0;
+        .close-btn {
+            background: #dc3545;
+            color: white;
         }
 
-        .contact form {
-            max-width: 500px;
-            margin: 0 auto;
+        .clear-btn {
+            background: #ffc107;
+            color: black;
         }
 
+        .calculate-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        #totalCost {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        /* Footer */
         footer {
-            background-color: #333;
+            background: #333;
             color: #fff;
-            padding: 20px 0;
+            padding: 20px;
             text-align: center;
         }
-
-        footer a {
-            color: #fff;
-        }
-
     </style>
 </head>
 
 <body>
-    <!-- Header Section -->
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container">
-                <a class="navbar-brand" href="#">Smart Agencies Rentals Management System</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item active">
-                            <a class="nav-link" href="homepage.php">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="tenants_login.php">Rentals</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="login.php">Agent</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">About Us</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Contact</a>
-                        </li>
-                    </ul>
-                </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Smart Agencies Rentals</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item active"><a class="nav-link" href="homepage.php">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="tenants_login.php">Rentals</a></li>
+                    <li class="nav-item"><a class="nav-link" href="login.php">Agent</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+                </ul>
             </div>
-        </nav>
-    </header>
+        </div>
+    </nav>
 
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
             <h1>Find Your Dream Rental</h1>
             <p>Explore our wide range of rental properties</p>
-            <a href="tenants_login.php" class="btn btn-primary">View Rentals</a>
+            <?php
+            $rentals_link = isset($_SESSION['login_id']) ? "rentals.php" : "tenants_login.php?redirect=rentals.php";
+            ?>
+            <a href="<?php echo $rentals_link; ?>" class="btn btn-primary">View Rentals</a>
         </div>
-    </section></br>
+    </section>
 
-    <!-- Featured Rentals Section -->
-<section class="featured-rentals">
+    <!-- Our Services Section -->
+<section id="services" class="py-5">
     <div class="container">
-    <center><h2>Simply The Best Ahead Of The Rest</h2></center>
-    <div class="row">
-        <!-- Rental Cards -->
-        <div class="col-md-4 mt-4"> <!-- Add mt-4 class here -->
-            <div class="card">
-                <img src="assets/images/property-2955057_1920.jpg" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">Featured Rental 1</h5>
-                    <p class="card-text">Brief description of the rental property.</p>
-                    <a href="#" class="btn btn-primary">View Details</a>
+        <h2 class="text-center mb-4">Our Services</h2>
+        <div class="row">
+            <!-- Service 1 -->
+            <div class="col-md-4">
+                <div class="service-card">
+                    <div class="icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h4>Rental Property Listings</h4>
+                    <p>Browse a variety of available rental properties with updated listings and competitive pricing.</p>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4 mt-4"> <!-- Add mt-4 class here -->
-            <div class="card">
-                <img src="assets/images/house-purchase-1019764_1920.jpg" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">Featured Rental 2</h5>
-                    <p class="card-text">Brief description of the rental property.</p>
-                    <a href="#" class="btn btn-primary">View Details</a>
+
+            <!-- Service 2 -->
+            <div class="col-md-4">
+                <div class="service-card">
+                    <div class="icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h4>Lease Agreement Assistance</h4>
+                    <p>Get professional guidance on lease agreements to ensure clarity and compliance.</p>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4 mt-4"> <!-- Add mt-4 class here -->
-            <div class="card">
-                <img src="assets/images/keys.jpg" class="card-img-top" alt="..."></br>
-                <div class="card-body">
-                    <h5 class="card-title">Featured Rental 3</h5>
-                    <p class="card-text">Brief description of the rental property.</p>
-                    <a href="#" class="btn btn-primary">View Details</a>
+
+            <!-- Service 3 -->
+            <div class="col-md-4">
+                <div class="service-card">
+                    <div class="icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h4>Maintenance & Repairs</h4>
+                    <p>We offer quick and reliable maintenance solutions for your rented property.</p>
+                </div>
+            </div>
+
+            <!-- Service 4 -->
+            <div class="col-md-4">
+                <div class="service-card">
+                    <div class="icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Security & Safety Checks</h4>
+                    <p>We ensure every rental property meets high security and safety standards.</p>
+                </div>
+            </div>
+
+            <!-- Service 5 -->
+            <div class="col-md-4">
+                <div class="service-card">
+                    <div class="icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h4>24/7 Customer Support</h4>
+                    <p>Our support team is available 24/7 to assist tenants and resolve any issues.</p>
+                </div>
+            </div>
+
+            <!-- Service 6 -->
+            <div class="col-md-4">
+                <div class="service-card">
+                    <div class="icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <h4>Flexible Payment Options</h4>
+                    <p>Choose from multiple payment methods for your rent, including mobile money & bank transfers.</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
 </section>
 
-    <!-- Services Offered Section -->
-    <section class="services">
-        <div class="container">
-            <center><h2>Our Services</h2></center>
-            <div class="row">
-                <div class="col-md-4 service-item">
-                    <h3>Property Management</h3>
-                    <p>Description of property management service.</p>
-                </div>
-                <div class="col-md-4 service-item">
-                    <h3>Tenant Screening</h3>
-                    <p>Description of tenant screening service.</p>
-                </div>
-                <div class="col-md-4 service-item">
-                    <h3>Maintenance</h3>
-                    <p>Description of maintenance service.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- Styles for Services -->
+<style>
+    #services {
+        background: #f8f9fa;
+    }
+    
+    .service-card {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+        margin-bottom: 20px;
+    }
 
-     <!-- Testimonial  Grid -->
-            <section class="testimonials">
-                <div class="container">
-                    <h2>Testimonials</h2>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="testimonial">
-                                <img src="assets/images/user-33638_1280.jpg" alt="Client 1">
-                                <h3>Client 1</h3>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed quis felis at velit aliquet
-                                    lobortis.</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="testimonial">
-                                <img src="assets/images/teacher-295387_1280.jpg" alt="Client 2">
-                                <h3>Client 2</h3>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed quis felis at velit aliquet
-                                    lobortis.</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="testimonial">
-                                <img src="assets/images/user-33638_1280.jpg" alt="Client 3">
-                                <h3>Client 3</h3>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed quis felis at velit aliquet
-                                    lobortis.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+    .service-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    }
 
-        </div>
-    </section>
+    .service-card .icon {
+        font-size: 40px;
+        color: #007bff;
+        margin-bottom: 10px;
+    }
 
-    <!-- About Us Section -->
-    <section class="about-us">
-        <div class="container">
-            <h2>About Us</h2>
-            <p>Brief overview of the company.</p>
-        </div>
-    </section>
+    .service-card h4 {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
 
-    <!-- Contact Section -->
-    <section class="contact">
-        <div class="container">
-            <h2>Contact Us</h2>
-            <form>
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" class="form-control" id="name" placeholder="Enter your name">
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" class="form-control" id="email" placeholder="Enter your email">
-                </div>
-                <div class="form-group">
-                    <label for="message">Message</label>
-                    <textarea class="form-control" id="message" rows="3" placeholder="Enter your message"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
+    .service-card p {
+        font-size: 14px;
+        color: #555;
+    }
+</style>
+
+<!-- FontAwesome for Icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <!-- Rental Calculator Button -->
+    <button class="btn btn-dark calculator-btn" onclick="openCalculator()">🧮 Calculator</button>
+
+    <!-- Rental Calculator Modal -->
+    <div id="calculatorModal" class="modal">
+        <div class="modal-content">
+            <h3>Rental Cost Calculator</h3>
+            <select id="currency">
+                <option value="KES">KES</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+            </select>
+            <input type="number" id="baseRent" placeholder="Enter Monthly Rent" oninput="autoCalculate()">
+            <input type="number" id="utilities" placeholder="Estimated Utilities" oninput="autoCalculate()">
+            <input type="number" id="otherCharges" placeholder="Other Monthly Charges" oninput="autoCalculate()">
+            <p id="totalCost">Total Cost: KES 0.00</p>
+            <button class="btn clear-btn" onclick="clearCalculator()">Clear</button>
+            <button class="btn close-btn" onclick="closeCalculator()">Close</button>
         </div>
-    </section>
+    </div>
 
     <!-- Footer -->
     <footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <p>&copy; 2022 Rental Management. All rights reserved.</p>
-                </div>
-                <div class="col-md-6 text-right">
-                    <a href="#">Terms of Service</a> | <a href="#">Privacy Policy</a>
-                </div>
-            </div>
-        </div>
+        <p>&copy; <?php echo date("Y"); ?> Smart Agencies Rentals | Developed by Ernest</p>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+    <!-- JavaScript -->
+    <script>
+        function openCalculator() {
+            document.getElementById("calculatorModal").style.display = "block";
+        }
+
+        function closeCalculator() {
+            document.getElementById("calculatorModal").style.display = "none";
+        }
+
+        function clearCalculator() {
+            document.getElementById("baseRent").value = "";
+            document.getElementById("utilities").value = "";
+            document.getElementById("otherCharges").value = "";
+            autoCalculate();
+        }
+
+        function autoCalculate() {
+            var rent = parseFloat(document.getElementById("baseRent").value) || 0;
+            var utilities = parseFloat(document.getElementById("utilities").value) || 0;
+            var otherCharges = parseFloat(document.getElementById("otherCharges").value) || 0;
+            var total = rent + utilities + otherCharges;
+
+            var currency = document.getElementById("currency").value;
+            document.getElementById("totalCost").innerText = `Total Cost: ${currency} ${total.toFixed(2)}`;
+        }
+    </script>
+
 </body>
-
 </html>
-

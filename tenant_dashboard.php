@@ -10,9 +10,9 @@ if (!isset($_SESSION['login_id'])) {
 // Fetch user details
 $tenant_id = $_SESSION['login_id'];
 $tenant = $conn->query("SELECT * FROM tenants WHERE id = $tenant_id")->fetch_assoc();
-$tenant_name = $tenant['name'];
+// $tenant_name = $tenant['name'];
 $tenant_email = $tenant['email'];
-$profile_pic = $tenant['profile_pic'] ?: 'default.png';
+// $profile_pic = $tenant['profile_pic'] ?: 'default.png';
 
 // Fetch available houses
 $availableHouses = $conn->query("SELECT h.id, h.house_no, c.name AS category, h.description, h.price 
@@ -50,7 +50,7 @@ $tenantBookings = $conn->query("SELECT b.id, h.house_no, c.name AS category, h.d
     </div>
     <div class="flex items-center space-x-3">
         <img src="<?php echo $profile_pic; ?>" class="w-10 h-10 rounded-full" alt="User Profile">
-        <span class="text-white font-semibold"><?php echo $tenant_name; ?></span>
+        <!-- <span class="text-white font-semibold"><?php echo $tenant_name; ?></span> -->
         <a href="logout.php" class="bg-red-600 px-3 py-1 rounded text-white shadow hover:bg-red-500">Logout</a>
     </div>
 </nav>
@@ -140,7 +140,8 @@ $tenantBookings = $conn->query("SELECT b.id, h.house_no, c.name AS category, h.d
         });
     });
 </script>
-
+  
+  
 
 </body>
 </html>
