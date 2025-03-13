@@ -3,15 +3,35 @@ session_start();
 include('./db_connect.php');
 
 if (!isset($_SESSION['login_id'])) {
-    header("Location: tenants_login.php?redirect=rentals.php"); // Send user to login
+    header("Location: tenants_login.php?redirect=rentals.php"); // Redirect user to login
     exit();
 }
 
-// Fetch available houses
+// Default query to fetch all available houses
 $query = "SELECT * FROM houses WHERE status = 'Available'";
+
+// Filtering logic
+if (!empty($_GET['search'])) {
+    $search = $conn->real_escape_string($_GET['search']);
+    $query .= " AND location LIKE '%$search%'";
+}
+
+if (!empty($_GET['status']) && $_GET['status'] !== "All") {
+    $status = $conn->real_escape_string($_GET['status']);
+    $query .= " AND status = '$status'";
+}
+
+if (!empty($_GET['sort'])) {
+    $sortOption = $_GET['sort'];
+    if ($sortOption === "Low to High") {
+        $query .= " ORDER BY price ASC";
+    } elseif ($sortOption === "High to Low") {
+        $query .= " ORDER BY price DESC";
+    }
+}
+
 $result = $conn->query($query);
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -57,46 +77,66 @@ $result = $conn->query($query);
 <body>
 
 <div class="container mt-4">
-    <h2 class="text-center mb-4">Find Your Dream Rental</h2>
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Find Your Dream Rental</h2>
+
+        <!-- Logout Button -->
+        <a href="logout.php" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
 
     <!-- Dark Mode Toggle -->
-    <div class="text-end">
+    <div class="text-end mt-2">
         <button class="btn btn-dark" onclick="toggleDarkMode()">🌙 Dark Mode</button>
     </div>
 
-    <!-- Search & Filters -->
-    <div class="row filter-container">
-        <div class="col-md-3">
-            <input type="text" id="search" class="form-control" placeholder="Search by location">
+    <!-- Search & Filters Form -->
+    <form method="GET" action="rentals.php">
+        <div class="row filter-container">
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control" placeholder="Search by location" value="<?= isset($_GET['search']) ? $_GET['search'] : '' ?>">
+            </div>
+            <div class="col-md-3">
+                <select name="sort" class="form-select">
+                    <option value="">Sort by Price</option>
+                    <option value="Low to High" <?= isset($_GET['sort']) && $_GET['sort'] == "Low to High" ? 'selected' : '' ?>>Low to High</option>
+                    <option value="High to Low" <?= isset($_GET['sort']) && $_GET['sort'] == "High to Low" ? 'selected' : '' ?>>High to Low</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="All">Filter by Status</option>
+                    <option value="Available" <?= isset($_GET['status']) && $_GET['status'] == "Available" ? 'selected' : '' ?>>Available</option>
+                    <option value="Booked" <?= isset($_GET['status']) && $_GET['status'] == "Booked" ? 'selected' : '' ?>>Booked</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a href="rentals.php" class="btn btn-secondary">Reset</a>
+            </div>
         </div>
-        <div class="col-md-3">
-            <select class="form-select">
-                <option>Sort by Price</option>
-                <option>Low to High</option>
-                <option>High to Low</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select class="form-select">
-                <option>Filter by Status</option>
-                <option>Available</option>
-                <option>Booked</option>
-            </select>
-        </div>
-    </div>
+    </form>
 
     <!-- Rental Listings Grid -->
     <div class="row">
         <?php while ($row = $result->fetch_assoc()): ?>
             <div class="col-md-4 mb-4">
                 <div class="card rental-card">
-                    <img src="house.jpg" class="card-img-top rental-img" alt="House">
+                    <?php 
+                        $imagePath = (!empty($row['image'])) ? 'uploads/' . $row['image'] : 'default-house.jpg';
+                    ?>
+                    <img src="<?= $imagePath ?>" class="card-img-top rental-img" alt="House Image">
                     <div class="card-body">
                         <h5 class="card-title"><i class="fas fa-home"></i> House No: <?= $row['house_no'] ?></h5>
-                        <p class="card-text"><i class="fas fa-map-marker-alt"></i> Description: <?= $row['description'] ?></p>
-                        <p class="card-text"><i class="fas fa-dollar-sign"></i> Price: KES <?= $row['price'] ?></p>
+                        <p class="card-text"><i class="fas fa-map-marker-alt"></i> <?= $row['location'] ?></p>
+                        <p class="card-text"><i class="fas fa-dollar-sign"></i> Price: KES <?= number_format($row['price'], 2) ?></p>
                         <span class="badge bg-success"><?= $row['status'] ?></span>
-                        <a href="#" class="btn btn-primary w-100 mt-3">Book Now</a>
+                        
+                        <!-- Book Now Button Redirecting to Tenants Dashboard -->
+                        <a href="tenant_dashboard.php" class="btn btn-primary w-100 mt-3">
+                            Book Now <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>
