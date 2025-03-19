@@ -123,13 +123,24 @@ $result = $conn->query($query);
         <?php while ($row = $result->fetch_assoc()): ?>
             <div class="col-md-4 mb-4">
                 <div class="card rental-card">
-                    <?php 
-                        $imagePath = (!empty($row['image'])) ? 'uploads/' . $row['image'] : 'default-house.jpg';
-                    ?>
-                    <img src="<?= $imagePath ?>" class="card-img-top rental-img" alt="House Image">
+                <?php 
+    $imagePath = !empty($row['image']) ? 'assets/uploads/' . $row['image'] : 'assets/uploads/default-house.jpg';
+
+    // Debugging: Check if file exists
+    if (!file_exists("C:/xampp/htdocs/hr/" . $imagePath)) {
+        echo "<p style='color:red;'>Error: Image not found at $imagePath</p>";
+        $imagePath = "assets/uploads/default-house.jpg";
+    }
+?>
+<img src="<?= $imagePath ?>" class="card-img-top rental-img" alt="House Image">
+
                     <div class="card-body">
                         <h5 class="card-title"><i class="fas fa-home"></i> House No: <?= $row['house_no'] ?></h5>
-                        <p class="card-text"><i class="fas fa-map-marker-alt"></i> <?= $row['location'] ?></p>
+                        <p class="card-text"><i class="fas fa-map-marker-alt"></i> 
+    <?= isset($row['location']) ? htmlspecialchars($row['location']) : 'Location not available'; ?>
+</p>
+
+
                         <p class="card-text"><i class="fas fa-dollar-sign"></i> Price: KES <?= number_format($row['price'], 2) ?></p>
                         <span class="badge bg-success"><?= $row['status'] ?></span>
                         
