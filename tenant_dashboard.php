@@ -10,22 +10,19 @@ if (!isset($_SESSION['login_id'])) {
 // Fetch user details
 $tenant_id = $_SESSION['login_id'];
 $tenant = $conn->query("SELECT * FROM tenants WHERE id = $tenant_id")->fetch_assoc();
-// $tenant_name = $tenant['name'];
 $tenant_email = $tenant['email'];
-// $profile_pic = $tenant['profile_pic'] ?: 'default.png';
 
-// Fetch available houses
-$availableHouses = $conn->query("SELECT h.id, h.house_no, c.name AS category, h.description, h.price 
+// Fetch available houses with images
+$availableHouses = $conn->query("SELECT h.id, h.house_no, h.image, c.name AS category, h.description, h.price 
                                  FROM houses h 
                                  JOIN categories c ON h.category_id = c.id");
 
 // Fetch tenant bookings
-$tenantBookings = $conn->query("SELECT b.id, h.house_no, c.name AS category, h.description, h.price, b.status, b.booking_date
+$tenantBookings = $conn->query("SELECT b.id, h.house_no, h.image, c.name AS category, h.description, h.price, b.status, b.booking_date
                                 FROM bookings b 
                                 JOIN houses h ON b.house_id = h.id
                                 JOIN categories c ON h.category_id = c.id
                                 WHERE b.tenant_id = $tenant_id");
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,8 +46,6 @@ $tenantBookings = $conn->query("SELECT b.id, h.house_no, c.name AS category, h.d
         <h1 class="text-white text-2xl font-bold ml-2">🏡 Tenant Dashboard</h1>
     </div>
     <div class="flex items-center space-x-3">
-        <img src="<?php echo $profile_pic; ?>" class="w-10 h-10 rounded-full" alt="User Profile">
-        <!-- <span class="text-white font-semibold"><?php echo $tenant_name; ?></span> -->
         <a href="logout.php" class="bg-red-600 px-3 py-1 rounded text-white shadow hover:bg-red-500">Logout</a>
     </div>
 </nav>
@@ -63,7 +58,10 @@ $tenantBookings = $conn->query("SELECT b.id, h.house_no, c.name AS category, h.d
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         <?php while ($house = $availableHouses->fetch_assoc()) { ?>
             <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-md">
-                <h3 class="text-lg font-bold">House No: <?php echo $house['house_no']; ?></h3>
+                <!-- Display House Image -->
+                <img src="<?php echo !empty($house['image']) ? 'assets/uploads/' . $house['image'] : 'assets/uploads/default.jpg'; ?>" 
+                     alt="House Image" class="w-full h-48 object-cover rounded">
+                <h3 class="text-lg font-bold mt-2">House No: <?php echo $house['house_no']; ?></h3>
                 <p><b>Category:</b> <?php echo $house['category']; ?></p>
                 <p><?php echo $house['description']; ?></p>
                 <p><b>Price:</b> KES <?php echo number_format($house['price']); ?></p>
@@ -80,7 +78,8 @@ $tenantBookings = $conn->query("SELECT b.id, h.house_no, c.name AS category, h.d
     <table class="w-full mt-4 bg-white dark:bg-gray-800 rounded shadow-md">
         <thead class="bg-gray-200 dark:bg-gray-700">
             <tr>
-                <th class="p-2">House No</th>
+                <th class="p-2">Image</th>
+                <th>House No</th>
                 <th>Category</th>
                 <th>Price</th>
                 <th>Status</th>
@@ -91,6 +90,10 @@ $tenantBookings = $conn->query("SELECT b.id, h.house_no, c.name AS category, h.d
         <tbody>
             <?php while ($booking = $tenantBookings->fetch_assoc()) { ?>
                 <tr class="border-b hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <td class="p-2">
+                        <img src="<?php echo !empty($booking['image']) ? 'assets/uploads/' . $booking['image'] : 'assets/uploads/default.jpg'; ?>" 
+                             alt="Booked House" class="w-16 h-16 object-cover rounded">
+                    </td>
                     <td class="p-2"><?php echo $booking['house_no']; ?></td>
                     <td><?php echo $booking['category']; ?></td>
                     <td>KES <?php echo number_format($booking['price']); ?></td>
@@ -120,7 +123,7 @@ $tenantBookings = $conn->query("SELECT b.id, h.house_no, c.name AS category, h.d
         button.addEventListener("click", function(event) {
             event.preventDefault();
             let bookingId = this.getAttribute("data-booking-id");
-            let row = this.closest("tr"); // Get the row to remove
+            let row = this.closest("tr");
 
             if (!confirm("Are you sure you want to cancel this booking?")) return;
 
@@ -140,8 +143,6 @@ $tenantBookings = $conn->query("SELECT b.id, h.house_no, c.name AS category, h.d
         });
     });
 </script>
-  
-  
 
 </body>
 </html>

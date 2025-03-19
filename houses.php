@@ -7,9 +7,7 @@
             <div class="col-md-4">
                 <form action="" id="manage-house" enctype="multipart/form-data">
                     <div class="card">
-                        <div class="card-header">
-                            House Form
-                        </div>
+                        <div class="card-header">House Form</div>
                         <div class="card-body">
                             <div class="form-group" id="msg"></div>
                             <input type="hidden" name="id">
@@ -23,7 +21,7 @@
                                     <?php 
                                     $categories = $conn->query("SELECT * FROM categories ORDER BY name ASC");
                                     if($categories->num_rows > 0):
-                                    while($row = $categories->fetch_assoc()) :
+                                        while($row = $categories->fetch_assoc()):
                                     ?>
                                     <option value="<?php echo $row['id'] ?>"><?php echo $row['name'] ?></option>
                                     <?php endwhile; ?>
@@ -33,7 +31,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="" class="control-label">Description</label>
+                                <label class="control-label">Description</label>
                                 <textarea name="description" cols="30" rows="4" class="form-control" required></textarea>
                             </div>
                             <div class="form-group">
@@ -43,13 +41,14 @@
                             <div class="form-group">
                                 <label class="control-label">House Image</label>
                                 <input type="file" class="form-control" name="image">
+                                <img id="house-image-preview" src="" width="100" height="100" style="display:none; margin-top:10px;">
                             </div>
                         </div>
                         <div class="card-footer">
                             <div class="row">
                                 <div class="col-md-12">
-                                    <button class="btn btn-sm btn-primary col-sm-3 offset-md-3"> Save</button>
-                                    <button class="btn btn-sm btn-default col-sm-3" type="reset"> Cancel</button>
+                                    <button class="btn btn-sm btn-primary col-sm-3 offset-md-3">Save</button>
+                                    <button class="btn btn-sm btn-default col-sm-3" type="reset">Cancel</button>
                                 </div>
                             </div>
                         </div>
@@ -61,9 +60,7 @@
             <!-- Table Panel -->
             <div class="col-md-8">
                 <div class="card">
-                    <div class="card-header">
-                        <b>House List</b>
-                    </div>
+                    <div class="card-header"><b>House List</b></div>
                     <div class="card-body">
                         <table class="table table-bordered table-hover">
                             <thead>
@@ -77,7 +74,7 @@
                             <tbody>
                                 <?php 
                                 $i = 1;
-                                $house = $conn->query("SELECT h.*,c.name as cname FROM houses h INNER JOIN categories c ON c.id = h.category_id ORDER BY id ASC");
+                                $house = $conn->query("SELECT h.*, c.name as cname FROM houses h INNER JOIN categories c ON c.id = h.category_id ORDER BY id ASC");
                                 while($row = $house->fetch_assoc()):
                                 ?>
                                 <tr>
@@ -90,7 +87,7 @@
                                     </td>
                                     <td class="text-center">
                                         <?php if($row['image']): ?>
-                                            <img src="uploads/<?php echo $row['image'] ?>" width="80px" height="80px">
+                                            <img src="assets/uploads/<?php echo $row['image'] ?>" width="80px" height="80px">
                                         <?php else: ?>
                                             <p>No Image</p>
                                         <?php endif; ?>
@@ -133,23 +130,34 @@
             method: 'POST',
             success:function(resp){
                 if(resp == 1){
-                    alert("Data successfully saved");
-                    location.reload();
+                    alert("House successfully saved");
+                    window.location.href = 'http://localhost/hr/index.php?page=houses';
                 } else if(resp == 2){
                     alert("House number already exists.");
+                } else {
+                    alert("Error saving house.");
                 }
             }
-        })
+        });
     });
 
+    // Edit House button functionality
     $('.edit_house').click(function(){
         var form = $('#manage-house');
         form[0].reset();
+        
         form.find("[name='id']").val($(this).data('id'));
         form.find("[name='house_no']").val($(this).data('house_no'));
         form.find("[name='description']").val($(this).data('description'));
         form.find("[name='price']").val($(this).data('price'));
         form.find("[name='category_id']").val($(this).data('category_id'));
+        
+        var imgPath = $(this).data('image');
+        if(imgPath){
+            $('#house-image-preview').attr('src', 'assets/uploads/' + imgPath).show();
+        } else {
+            $('#house-image-preview').hide();
+        }
     });
 
     $('.delete_house').click(function(){
@@ -160,11 +168,13 @@
                 data:{id: $(this).data('id')},
                 success:function(resp){
                     if(resp == 1){
-                        alert("Data successfully deleted");
-                        location.reload();
+                        alert("House successfully deleted");
+                        window.location.href = 'http://localhost/hr/index.php?page=houses';
+                    } else {
+                        alert("Error deleting house.");
                     }
                 }
-            })
+            });
         }
     });
 
